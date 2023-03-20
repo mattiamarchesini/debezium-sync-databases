@@ -22,12 +22,28 @@ services:
       - MYSQL_ROOT_PASSWORD=debezium
       - MYSQL_USER=mysqluser
       - MYSQL_PASSWORD=mysqlpw
-  connect:
-    image: quay.io/debezium/connect:${DEBEZIUM_VERSION}
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
     ports:
-      - 8083:8083
+      - ${SQLSERVER_PORT}:${SQLSERVER_PORT}
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Standard
+      - SA_PASSWORD=Password!
+      - MSSQL_AGENT_ENABLED=true
+  connect:
+    build:
+      context: ./
+      dockerfile: kafka-connect-with-jdbc.Dockerfile
+      args:
+        - DEBEZIUM_VERSION=${DEBEZIUM_VERSION}
+    image: kafka-connect-with-jdbc
+    # image: quay.io/debezium/connect:${DEBEZIUM_VERSION}
+    ports:
+      - ${KAFKA_CONNECT_PORT}:${KAFKA_CONNECT_PORT}
     links:
       - kafka
+      - sqlserver
       - mysql
     environment:
       - BOOTSTRAP_SERVERS=kafka:9092
@@ -35,3 +51,8 @@ services:
       - CONFIG_STORAGE_TOPIC=my_connect_configs
       - OFFSET_STORAGE_TOPIC=my_connect_offsets
       - STATUS_STORAGE_TOPIC=my_connect_statuses
+    volumes:
+      - ./jdbc-sqlserver-driver/auth:/kafka/libs/auth
+      - ./jdbc-sqlserver-driver/xa:/kafka/libs/xa
+      - ./jdbc-sqlserver-driver/mssql-jdbc-12.2.0.jre11.jar:/kafka/libs/mssql-jdbc-12.2.0.jre11.jar
+      # - ./sqlserver-init.sql

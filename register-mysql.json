@@ -1,15 +1,16 @@
 {
-    "name": "inventory-connector",
+    "name": "inventory-connector-mysql",
     "config": {
-        "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+        "connection.url": "jdbc:mysql://localhost:3306;databaseName=inventory;user=debezium;password=dbz;",
         "tasks.max": "1",
         "database.hostname": "localhost",
         "database.port": "3306",
         "database.user": "debezium",
         "database.password": "dbz",
-        "database.server.id": "184054",
         "database.dbname": "inventory",
-        "topic.prefix": "dbserver1",
+        "topic.prefix": "mysql",
+        "topics": "customers",
         "database.include.list": "inventory",
         "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
         "schema.history.internal.kafka.topic": "schema-changes.inventory"
